@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
-import matplotlib.finance as mpf
+import mpl_finance as mpf
 import numpy as np
 from pandas import Series, DataFrame
 # http://blog.csdn.net/xiaodongxiexie/article/details/53123371
@@ -29,7 +29,7 @@ class PlotShow(object):
     def candle_show(self, stock_data, top_bottom_data):
 
         # 创建子图
-        fig, ax = plt.subplots(figsize=(192.0 / 72, 108.0 / 72))
+        fig, ax = plt.subplots(figsize=(1920.0 / 72, 1080.0 / 72))
         ax.xaxis.set_major_locator(ticker.MultipleLocator(self.xaxis_cycle))
         ax.xaxis.set_major_formatter(ticker.FuncFormatter(self.__format_date))
         mpf.candlestick_ohlc(ax, stock_data, width=self.width, colordown=self.colordown, colorup=self.colorup, alpha=1)
@@ -58,7 +58,7 @@ class PlotShow(object):
 
     # MA 画图
     def ma_kiss_show(self, ma):
-        fig, ax = plt.subplots(1, 1, figsize=(1920 / 72, 1080 / 72), sharex=True)
+        fig, ax = plt.subplots(1, 1, figsize=(19200 / 72, 10800 / 72), sharex=True)
 
         plt.rcParams['font.sans-serif'] = ['SimHei']
         plt.rcParams['axes.unicode_minus'] = False

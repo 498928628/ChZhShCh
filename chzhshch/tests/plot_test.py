@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.finance as mpf
+import mpl_finance as mpf
 
 
 def candle_show(self, stock_data, scatter_data):

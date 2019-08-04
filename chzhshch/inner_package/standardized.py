@@ -1,5 +1,9 @@
 # -*- coding: UTF-8 -*-
 # K线数据标准化处理
+#由于是较大级别的日线,使用了新笔定义,分型间可以没有笔
+#同时因为级别较大,也删除了笔破坏的概念
+import copy
+
 class StandardHandle(object):
     def __init__(self, original_list):
         self.candle_direction = 0
@@ -107,16 +111,16 @@ class StandardHandle(object):
         result.append(item_pre)
         return result
 
-    # 标准化处理
+    # 标准化处理,
     def deal_candle(self):
         i = 0
         while i < len(self.standardized_list):
-            item_curr = self.standardized_list[i]
-            if i > 0:
-                item_pre = self.standardized_list[i - 1]
-                self.__set_direction(item_pre, item_curr)
-                item_curr_pre = self.__merge_candles(item_pre, item_curr)
-                if self.is_merged:
+            item_curr = self.standardized_list[i]#取单个日期的数据组
+            if i > 0:#此处把第一个k线忽略掉了
+                item_pre = self.standardized_list[i - 1]#取到前一天的数据组
+                self.__set_direction(item_pre, item_curr)#计算两K线的方向
+                item_curr_pre = self.__merge_candles(item_pre, item_curr)#包含关系,向上和向下两种不同的包含方式的合并方式
+                if self.is_merged:#需要合并,合并后在列表中只选取一个数据组
                     self.standardized_list[i] = item_curr_pre[0]
                     self.standardized_list.pop(i - 1)
                     i -= 1
@@ -182,12 +186,12 @@ class StandardHandle(object):
                     self.top_bottom_list.append(curr)
             i += 1
 
-        print("top_bottom_list")
-        print(len(self.top_bottom_list))
+        # print("top_bottom_list")
+        # print(len(self.top_bottom_list))
 
         for item in self.top_bottom_list:
             self.top_bottom_list_ex.append([item["int_index"], item["typing_value"]])
-            print(item["int_index"], item["typing_value"], item["typing"])
+            # print(item["int_index"], item["typing_value"], item["typing"])
 
         # TODO:分型区间不能出现重合 处理
         # 连续顶顶或底底的情况要考虑极值的相比
@@ -199,13 +203,20 @@ class StandardHandle(object):
 
         # 不足5k的顶底去除
         for i in range(0, s_length, 1):
+            # if i == 49:
+            #     print(i)
             if s_length - i > 1:
                 curr = self.top_bottom_list[i]
                 after = self.top_bottom_list[i + 1]
-
+                print('*******************************************************')
+                print('curr',curr['index'])
+                print('after', after['index'])
+                print('temp_rang',temp_rang)
+                # if after['index'] != '2019-02-11 00:00:00':
+                #     continue
                 # 若不成笔区间不存在，则表示当前点和前面的点满足一笔且前点不存在争议
                 if temp_rang["_top"] is None and temp_rang["_bottom"] is None:
-                    if after["int_index"] - curr["int_index"] >= 4:
+                    if after["int_index"] - curr["int_index"] >= 3:
                         self.standardized_top_bottom_list.append(curr)
                     else:
                         # 如果不成笔区间未初始化 则需要重新确认不成笔区间
@@ -225,19 +236,24 @@ class StandardHandle(object):
                         # 当前为顶
                         if curr["typing"] == 1:
                             # 当前和区间底构成一笔 则区间底确认，不够成一笔 不处理
-                            if curr["int_index"] - temp_rang["_bottom"]["int_index"] >= 4:
+                            if curr["int_index"] - temp_rang["_bottom"]["int_index"] >= 3:
                                 self.standardized_top_bottom_list.append(temp_rang["_bottom"])
-
-                                if after["int_index"] - curr["int_index"] >= 4:
+                                #修改条件为3
+                                if after["int_index"] - curr["int_index"] >= 3:
                                     self.standardized_top_bottom_list.append(curr)
                                     # reset range
                                     temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
                                 else:
                                     # 判断笔破坏
                                     if after["typing_value"] < temp_rang["_bottom"]["typing_value"]:
-                                        self.standardized_top_bottom_list.pop(len(self.standardized_top_bottom_list) - 1)
-                                        self.standardized_top_bottom_list.append(after)
-                                        temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
+                                        # self.standardized_top_bottom_list.pop(len(self.standardized_top_bottom_list) - 1)
+                                        # #这个地方直接确认了新分型是错误的,或者通过后面删除
+                                        # self.standardized_top_bottom_list.append(after)
+                                        # temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
+
+                                        temp_rang["_top"] = curr
+                                        temp_rang["_bottom"] = after
+                                        temp_rang["_flag"] = 1
                                     else:
                                         # 新区间 确认顶
                                         temp_rang["_top"] = curr
@@ -260,31 +276,47 @@ class StandardHandle(object):
                         # 当前为底
                         else:
                             # 当前和区间顶构成一笔 则区间顶确认，不够成一笔 不处理
-                            if curr["int_index"] - temp_rang["_top"]["int_index"] >= 4:
+                            if curr["int_index"] - temp_rang["_top"]["int_index"] >= 3:
                                 self.standardized_top_bottom_list.append(temp_rang["_top"])
 
-                                if after["int_index"] - curr["int_index"] >= 4:
+                                if after["int_index"] - curr["int_index"] >= 3:
                                     self.standardized_top_bottom_list.append(curr)
                                     # reset range
                                     temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
                                 else:
                                     # 判断笔破坏
                                     if after["typing_value"] > temp_rang["_top"]["typing_value"]:
-                                        self.standardized_top_bottom_list.pop(len(self.standardized_top_bottom_list) - 1)
-                                        self.standardized_top_bottom_list.append(after)
-
-                                        # reset range
-                                        temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
+                                        # self.standardized_top_bottom_list.pop(len(self.standardized_top_bottom_list) - 1)
+                                        # self.standardized_top_bottom_list.append(after)
+                                        # # 这个地方直接确认了新分型是错误的,或者通过后面删除
+                                        # # reset range
+                                        # temp_rang = {"_top": None, "_bottom": None, "_flag": 0}
+                                        temp_rang["_top"] = after
+                                        temp_rang["_bottom"] = curr
+                                        temp_rang["_flag"] = -1
                                     else:
                                         # 新区间 确认底
                                         temp_rang["_top"] = after
                                         temp_rang["_bottom"] = curr
                                         temp_rang["_flag"] = -1
 
-        print("standardized_top_bottom_list")
-        print(len(self.standardized_top_bottom_list))
+        # print("standardized_top_bottom_list")
+        # print(len(self.standardized_top_bottom_list))
+        #添加开始和结尾的点的数据(画图的在外面改)
+        ###
+        self.count_standardized_top_bottom_list = copy.deepcopy(self.standardized_top_bottom_list)
+        self.count_standardized_top_bottom_list.insert(0,self.standardized_list[0])
+        #添加未确定分型和结束分型
+        self.count_standardized_top_bottom_list.append(self.top_bottom_list[-1])
+        self.count_standardized_top_bottom_list.append(self.standardized_list[-1])
+
+
+
+
+        # 为画图添加最后一个分型
+        # self.standardized_top_bottom_list.append(self.top_bottom_list[-1])
         # to simple series
         for item in self.standardized_top_bottom_list :
             self.standardized_top_bottom_list_ex.append([item["int_index"], item["typing_value"]])
-            print(item["int_index"], item["typing_value"], item["typing"])
+            # print(item["int_index"], item["typing_value"], item["typing"])
 

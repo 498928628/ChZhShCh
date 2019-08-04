@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.finance as mpf
+import mpl_finance as mpf
 from pandas import Series, DataFrame
 from matplotlib.pylab import date2num
 
