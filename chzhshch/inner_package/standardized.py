@@ -208,10 +208,10 @@ class StandardHandle(object):
             if s_length - i > 1:
                 curr = self.top_bottom_list[i]
                 after = self.top_bottom_list[i + 1]
-                print('*******************************************************')
-                print('curr',curr['index'])
-                print('after', after['index'])
-                print('temp_rang',temp_rang)
+                # print('*******************************************************')
+                # print('curr',curr['index'])
+                # print('after', after['index'])
+                # print('temp_rang',temp_rang)
                 # if after['index'] != '2019-02-11 00:00:00':
                 #     continue
                 # 若不成笔区间不存在，则表示当前点和前面的点满足一笔且前点不存在争议
@@ -309,6 +309,7 @@ class StandardHandle(object):
         #添加未确定分型和结束分型
         self.count_standardized_top_bottom_list.append(self.top_bottom_list[-1])
         self.count_standardized_top_bottom_list.append(self.standardized_list[-1])
+
 
 
 

@@ -18,8 +18,8 @@ stock_list = QA.QA_fetch_get_stock_list('tdx').code.tolist()
 
 # 设置分笔的周期
 # 暂时前复权,其他是摆设
-code = ['601595']
-original = th.TushareHelper(code, '2019-01-11', '2019-08-01', 'to_qfq', period='D')
+code = ['000001']
+original = th.TushareHelper(code, '2017-01-11', '2019-08-01', 'to_qfq', period='D')
 
 # 储存data_original_ex筛选数据，data_original全部数据，date_tickers添加时间数据
 original.data_transfer()
@@ -34,8 +34,13 @@ sta.deal_candle()
 # 3、输出
 sta.get_top_bottom()
 
+
+
+
 '''
 pen_collect = []
+#在这个地方 为首尾分型添加标记
+#在增量更新是 首先更新带标记的笔(日线,周线)
 for i, item in enumerate(sta.count_standardized_top_bottom_list):
     if i > 0:
         pen_collect.append(
@@ -82,6 +87,14 @@ my_plot.candle_show(sta.standardized_list_ex, sta.top_bottom_list_ex)  # 所有�
 date_tickers = sta.date_tickers
 my_plot = show.PlotShow(date_tickers, code [0])
 my_plot.candle_show(sta.standardized_list_ex, sta.standardized_top_bottom_list_ex)  # 筛选后的顶底分型
+
+
+
+
+#todo
+#1. 添加各级别分型到数据库
+#2. 为初始,结束 分型添加标记
+#3. 添加 未定笔的更新 功能: 简单一点是将
 
 
 #debug
